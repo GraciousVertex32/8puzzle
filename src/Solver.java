@@ -1,42 +1,42 @@
 import edu.princeton.cs.algs4.MinPQ;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdOut;
+
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
 public final class Solver
 {
     private final boolean issolvable;
     private final int moves;
+    private final Searchnode goal;
     public Solver(Board initial)
     {
-        int count = 0; // count moves need to solve
+        Searchnode currentmin,currentmin2;
         boolean solved = false;
         boolean tempissolvable = true; // have to give initial value
         int distributor = 0; // distribute twin and original operation
-        Searchnode previous; // link nodes
-        Board currentmin;
-        MinPQ minpq = new MinPQ(); // original queue
-        minpq.insert(initial);
+        MinPQ minpq = new MinPQ(manhattan()); // original queue
         Searchnode s0 = new Searchnode(initial,0,null);
-        previous = s0;
-        MinPQ minpq2 = new MinPQ(); // twin queue
-        minpq2.insert(initial.twin());
+        minpq.insert(s0);
+        MinPQ minpq2 = new MinPQ(manhattan()); // twin queue
+        Searchnode s1 = new Searchnode(initial.twin(),0,null);
+        minpq2.insert(s1);
         while (!solved)
         {
             if (distributor == 0)
             {
-                if (!((Board) minpq.min()).isGoal())
+                if (!((Searchnode) minpq.min()).board().isGoal())
                 {
-                    currentmin = (Board) minpq.delMin();
-                    for (Board board : currentmin.neighbors())
+                    currentmin = (Searchnode) minpq.delMin();
+                    for (Board board : currentmin.board().neighbors())
                     {
-                       Searchnode sn = new Searchnode(board,count,previous);
-
-                       if (!board.equals(previous.board))
-                       {
-                           minpq.insert(board);
-                       }
-                       previous = sn;
+                        if (!board.equals(currentmin.getPredecessor().board()))
+                        {
+                            Searchnode sn = new Searchnode(board,currentmin.moves()+1,currentmin);
+                            minpq.insert(sn);
+                        }
                     }
-                    count++;
                 }
                 else
                 {
@@ -47,13 +47,15 @@ public final class Solver
             }
             else
             {
-                if (!((Board) minpq2.min()).isGoal())
+                if (!((Searchnode) minpq2.min()).board().isGoal())
                 {
-                    for (Board board : ((Board) minpq2.delMin()).neighbors())
+                    currentmin2 = (Searchnode) minpq2.delMin();
+                    for (Board board : currentmin2.board().neighbors())
                     {
-                        if (!minpq2.min().equals(board))
+                        if (!board.equals(currentmin2.getPredecessor().board()))
                         {
-                            minpq2.insert(board);
+                            Searchnode sn2 = new Searchnode(board,currentmin2.moves()+1,currentmin2);
+                            minpq2.insert(sn2);
                         }
                     }
                 }
@@ -66,7 +68,8 @@ public final class Solver
             }
         }
         issolvable = tempissolvable;
-        moves = count;
+        moves =((Searchnode)minpq.min()).moves();
+        goal = (Searchnode) minpq.min();
     }
     public boolean isSolvable()            // is the initial board solvable?
     {
@@ -82,7 +85,14 @@ public final class Solver
     }
     public Iterable<Board> solution()      // sequence of boards in a shortest solution; null if unsolvable
     {
-        
+        List<Board> solution = new LinkedList<Board>();
+        Searchnode current = goal;
+        for (int i=0;i<moves;i++)
+        {
+            solution.add(current.board());
+            current = current.getPredecessor();
+        }
+        return solution;
     }
     public static void main(String[] args)
     {
@@ -106,7 +116,7 @@ public final class Solver
                 StdOut.println(board);
         }
     }
-    private final class Searchnode
+    public final class Searchnode
     {
         private final Board board;
         private final int moves;
@@ -116,6 +126,37 @@ public final class Solver
             this.board = current;
             this.moves = moves;
             this.predecessor =pre;
+        }
+        public int moves()
+        {
+            return moves;
+        }
+        public Board board()
+        {
+            return board;
+        }
+        public Searchnode getPredecessor()
+        {
+            return predecessor;
+        }
+    }
+    private Comparator<Searchnode> manhattan()
+    {
+        return new NodeComparator();
+    }
+    private class NodeComparator implements Comparator<Searchnode>
+    {
+        public int compare(Searchnode o1,Searchnode o2)
+        {
+            if (o1.board().manhattan() > o2.board().manhattan())
+            {
+                return 1;
+            }
+            if (o1.board().manhattan() < o2.board().manhattan())
+            {
+                return -1;
+            }
+            return 0;
         }
     }
 }
