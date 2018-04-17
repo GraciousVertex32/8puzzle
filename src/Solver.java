@@ -2,6 +2,7 @@ import edu.princeton.cs.algs4.MinPQ;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdOut;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
@@ -12,6 +13,10 @@ public final class Solver
     private final Searchnode goal;
     public Solver(Board initial)
     {
+        if (initial == null)
+        {
+            throw new java.lang.IllegalArgumentException();
+        }
         Searchnode currentmin, currentmin2;
         boolean solved = false;
         boolean tempissolvable = false; // have to give initial value
@@ -97,6 +102,10 @@ public final class Solver
     }
     public Iterable<Board> solution()      // sequence of boards in a shortest solution; null if unsolvable
     {
+        if (!isSolvable())
+        {
+            return null;
+        }
         List<Board> solution = new LinkedList<Board>();
         Searchnode current = goal;
         do
@@ -104,6 +113,7 @@ public final class Solver
             solution.add(current.board());
             current = current.getPredecessor();
         }while (current != null);
+        Collections.reverse(solution);
         return solution;
     }
     public static void main(String[] args)

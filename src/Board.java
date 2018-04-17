@@ -1,5 +1,6 @@
 import java.util.List;
 import java.util.LinkedList;
+
 import edu.princeton.cs.algs4.StdRandom;
 public final class Board // class must be immutable
 {
@@ -30,7 +31,7 @@ public final class Board // class must be immutable
                     tempblankblock[0] = i;
                     tempblankblock[1] = j;
                 }
-                if (i == dimension-1 && j == dimension -1 && layout[dimension-1][dimension-1] == 0) //the final number is right if it's 0
+                if (i == dimension - 1 && j == dimension - 1 && layout[dimension - 1][dimension - 1] == 0) //the final number is right if it's 0
                 {
                     break;
                 }
@@ -76,7 +77,6 @@ public final class Board // class must be immutable
     public Board twin() // a board that is obtained by exchanging any pair of blocks
     {
         int x = 0, y = 0, a = 0, b = 0; // for pair indexes
-        int tempstore; // for exchange
         for (int i = 0; i < dimension; i++) // get first block
         {
             for (int j = 0; j < dimension; j++)
@@ -91,7 +91,7 @@ public final class Board // class must be immutable
         }
         for (int i = x; i < dimension; i++) // get second block
         {
-            for (int j = y; j < dimension; j++)
+            for (int j = y + 1; j < dimension; j++)
             {
                 if (layout[i][j] != 0)
                 {
@@ -134,6 +134,10 @@ public final class Board // class must be immutable
     {
         if (y instanceof Board)
         {
+            if (((Board) y).dimension() != this.dimension())
+            {
+                return false;
+            }
             for (int i = 0; i < dimension; i++) // get second block
             {
                 for (int j = 0; j < dimension; j++)
@@ -151,14 +155,14 @@ public final class Board // class must be immutable
     public String toString()               // string representation of this board
     {
         StringBuffer s = new StringBuffer();
-        s.append(dimension+"/r/n");
+        s.append(dimension + "\r\n");
         for (int i = 0; i < dimension; i++) // get second block
         {
             for (int j = 0; j < dimension; j++)
             {
-                s.append(" "+layout[i][j]);
+                s.append(" " + layout[i][j]);
             }
-            s.append("/r/n");
+            s.append("\r\n");
         }
         return s.toString();
     }
