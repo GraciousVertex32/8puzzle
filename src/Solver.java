@@ -99,17 +99,17 @@ public final class Solver
     {
         List<Board> solution = new LinkedList<Board>();
         Searchnode current = goal;
-        for (int i = 0; i < moves; i++)
+        do
         {
             solution.add(current.board());
             current = current.getPredecessor();
-        }
+        }while (current != null);
         return solution;
     }
     public static void main(String[] args)
     {
         // create initial board from file
-        In in = new In("puzzle4x4-40.txt");
+        In in = new In(args[0]);
         int n = in.readInt();
         int[][] blocks = new int[n][n];
         for (int i = 0; i < n; i++)
@@ -128,7 +128,7 @@ public final class Solver
                 StdOut.println(board);
         }
     }
-    public final class Searchnode
+    private final class Searchnode
     {
         private final Board board;
         private final int moves;
