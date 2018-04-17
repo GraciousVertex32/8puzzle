@@ -12,15 +12,15 @@ public final class Solver
     private final Searchnode goal;
     public Solver(Board initial)
     {
-        Searchnode currentmin,currentmin2;
+        Searchnode currentmin, currentmin2;
         boolean solved = false;
-        boolean tempissolvable = true; // have to give initial value
+        boolean tempissolvable = false; // have to give initial value
         int distributor = 0; // distribute twin and original operation
         MinPQ minpq = new MinPQ(manhattan()); // original queue
-        Searchnode s0 = new Searchnode(initial,0,null);
+        Searchnode s0 = new Searchnode(initial, 0, null);
         minpq.insert(s0);
         MinPQ minpq2 = new MinPQ(manhattan()); // twin queue
-        Searchnode s1 = new Searchnode(initial.twin(),0,null);
+        Searchnode s1 = new Searchnode(initial.twin(), 0, null);
         minpq2.insert(s1);
         while (!solved)
         {
@@ -31,9 +31,14 @@ public final class Solver
                     currentmin = (Searchnode) minpq.delMin();
                     for (Board board : currentmin.board().neighbors())
                     {
-                        if (!board.equals(currentmin.getPredecessor().board()))
+                        if (currentmin.getPredecessor() == null)
                         {
-                            Searchnode sn = new Searchnode(board,currentmin.moves()+1,currentmin);
+                            Searchnode sn = new Searchnode(board, currentmin.moves() + 1, currentmin);
+                            minpq.insert(sn);
+                        }
+                        else if (!board.equals(currentmin.getPredecessor().board())) // first predecessor is null
+                        {
+                            Searchnode sn = new Searchnode(board, currentmin.moves() + 1, currentmin);
                             minpq.insert(sn);
                         }
                     }
@@ -42,6 +47,7 @@ public final class Solver
                 {
                     solved = true;
                     tempissolvable = true;
+                    break;
                 }
                 distributor = 1;
             }
@@ -52,9 +58,14 @@ public final class Solver
                     currentmin2 = (Searchnode) minpq2.delMin();
                     for (Board board : currentmin2.board().neighbors())
                     {
-                        if (!board.equals(currentmin2.getPredecessor().board()))
+                        if (currentmin2.getPredecessor() == null)
                         {
-                            Searchnode sn2 = new Searchnode(board,currentmin2.moves()+1,currentmin2);
+                            Searchnode sn2 = new Searchnode(board, currentmin2.moves() + 1, currentmin2);
+                            minpq2.insert(sn2);
+                        }
+                        else if (!board.equals(currentmin2.getPredecessor().board()))
+                        {
+                            Searchnode sn2 = new Searchnode(board, currentmin2.moves() + 1, currentmin2);
                             minpq2.insert(sn2);
                         }
                     }
@@ -63,12 +74,13 @@ public final class Solver
                 {
                     solved = true;
                     tempissolvable = false;
+                    break;
                 }
                 distributor = 0;
             }
         }
         issolvable = tempissolvable;
-        moves =((Searchnode)minpq.min()).moves();
+        moves = ((Searchnode) minpq.min()).moves();
         goal = (Searchnode) minpq.min();
     }
     public boolean isSolvable()            // is the initial board solvable?
@@ -87,7 +99,7 @@ public final class Solver
     {
         List<Board> solution = new LinkedList<Board>();
         Searchnode current = goal;
-        for (int i=0;i<moves;i++)
+        for (int i = 0; i < moves; i++)
         {
             solution.add(current.board());
             current = current.getPredecessor();
@@ -97,7 +109,7 @@ public final class Solver
     public static void main(String[] args)
     {
         // create initial board from file
-        In in = new In(args[0]);
+        In in = new In("puzzle4x4-40.txt");
         int n = in.readInt();
         int[][] blocks = new int[n][n];
         for (int i = 0; i < n; i++)
@@ -121,11 +133,17 @@ public final class Solver
         private final Board board;
         private final int moves;
         private final Searchnode predecessor;
-        public Searchnode(Board current,int moves,Searchnode pre)
+        private final int compare;
+        public Searchnode(Board current, int moves, Searchnode pre)
         {
+            if (current == null)
+            {
+                throw new NullPointerException();
+            }
             this.board = current;
             this.moves = moves;
-            this.predecessor =pre;
+            this.predecessor = pre;
+            this.compare = current.manhattan() + moves;
         }
         public int moves()
         {
@@ -146,13 +164,13 @@ public final class Solver
     }
     private class NodeComparator implements Comparator<Searchnode>
     {
-        public int compare(Searchnode o1,Searchnode o2)
+        public int compare(Searchnode o1, Searchnode o2)
         {
-            if (o1.board().manhattan() > o2.board().manhattan())
+            if (o1.compare > o2.compare)
             {
                 return 1;
             }
-            if (o1.board().manhattan() < o2.board().manhattan())
+            if (o1.compare < o2.compare)
             {
                 return -1;
             }

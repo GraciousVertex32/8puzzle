@@ -17,7 +17,7 @@ public final class Board // class must be immutable
         int a; //local variable refer to number in current position
         int tempmanhattan = 0; //local variable for manhattan
         int[] tempblankblock = new int[2];// local variable for blank position
-        dimension = (int) Math.pow(blocks.length, 0.5);
+        dimension = (int) blocks.length;
         layout = new int[dimension][dimension];
         for (int i = 0; i < dimension; i++)
         {
@@ -30,19 +30,18 @@ public final class Board // class must be immutable
                     tempblankblock[0] = i;
                     tempblankblock[1] = j;
                 }
-                else
-                {
-                    throw new java.lang.IllegalArgumentException();
-                }
-                if (layout[dimension][dimension] == 0) //the final number is right if it's 0
+                if (i == dimension-1 && j == dimension -1 && layout[dimension-1][dimension-1] == 0) //the final number is right if it's 0
                 {
                     break;
                 }
-                if (3 * i + j + 1 != layout[i][j]) //get hamming
+                if (dimension * i + j + 1 != layout[i][j] && a != 0) //get hamming
                 {
                     temphamming++;
                 }
-                tempmanhattan = tempmanhattan + Math.abs((a - 1) / 3 - i) + Math.abs((a - 1) % 3 - j); //get manhattan
+                if (a != 0)
+                {
+                    tempmanhattan = tempmanhattan + Math.abs((a - 1) / dimension - i) + Math.abs((a - 1) % dimension - j); //get manhattan
+                }
             }
         }
         if (temphamming == 0)
@@ -114,7 +113,7 @@ public final class Board // class must be immutable
             Board board = new Board(exchange(x - 1, y, x, y, layout));
             neighbors.add(board);
         }
-        if (x + 1 <= dimension)
+        if (x + 1 < dimension)
         {
             Board board = new Board(exchange(x + 1, y, x, y, layout));
             neighbors.add(board);
@@ -124,12 +123,11 @@ public final class Board // class must be immutable
             Board board = new Board(exchange(x, y - 1, x, y, layout));
             neighbors.add(board);
         }
-        if (y + 1 <= dimension)
+        if (y + 1 < dimension)
         {
             Board board = new Board(exchange(x, y + 1, x, y, layout));
             neighbors.add(board);
         }
-
         return neighbors;
     }
     public boolean equals(Object y)        // does this board equal y?
